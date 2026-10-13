@@ -1,0 +1,76 @@
+* 4-Bit Flash ADC Smart Garbage Bin Level Indicator Simulation
+* Transient Analysis with Linear Voltage Ramp (0.4V to 2.8V over 16ms)
+
+.title 4-Bit Flash ADC (LM339 Comparators & 74HC148 Logic)
+
+* --- POWER RAILS ---
+Vcc VCC 0 DC 5.0V
+
+* --- ANALOG SENSOR INPUT (RAMP FROM 0.4V TO 2.8V OVER 16ms) ---
+Vsensor VSENSOR 0 PWL(0ms 0.4V  16ms 2.8V)
+
+* --- RESISTOR LADDER (16 Resistors of 1kΩ) ---
+* Reference range 0.40V to 2.80V (ΔV = 0.15V)
+Vtop VCC VTOP DC 2.2V
+Rtop VTOP N15 1k
+R15 N15 N14 1k
+R14 N14 N13 1k
+R13 N13 N12 1k
+R12 N12 N11 1k
+R11 N11 N10 1k
+R10 N10 N9  1k
+R9  N9  N8  1k
+R8  N8  N7  1k
+R7  N7  N6  1k
+R6  N6  N5  1k
+R5  N5  N4  1k
+R4  N4  N3  1k
+R3  N3  N2  1k
+R2  N2  N1  1k
+Rbot N1 NBOT 1k
+Vbot NBOT 0 DC 0.25V
+
+* --- PULL-UP RESISTORS FOR COMPARATORS (10kΩ each to VCC) ---
+Rpu15 VCC C15_OUT 10k
+Rpu14 VCC C14_OUT 10k
+Rpu13 VCC C13_OUT 10k
+Rpu12 VCC C12_OUT 10k
+Rpu11 VCC C11_OUT 10k
+Rpu10 VCC C10_OUT 10k
+Rpu9  VCC C9_OUT  10k
+Rpu8  VCC C8_OUT  10k
+Rpu7  VCC C7_OUT  10k
+Rpu6  VCC C6_OUT  10k
+Rpu5  VCC C5_OUT  10k
+Rpu4  VCC C4_OUT  10k
+Rpu3  VCC C3_OUT  10k
+Rpu2  VCC C2_OUT  10k
+Rpu1  VCC C1_OUT  10k
+
+* --- IDEAL COMPARATOR SUB-CIRCUITS (Open-Collector behavior) ---
+* When VSENSOR >= VTH, Output pulls to 0V. Else pulled HIGH by Rpu.
+.subckt COMP_OC VIN_MINUS VIN_PLUS VOUT GND
+B1 VOUT GND I = (V(VIN_MINUS) > V(VIN_PLUS)) ? (V(VOUT) / 50.0) : 0
+.ends COMP_OC
+
+Xcomp15 VSENSOR N15 C15_OUT 0 COMP_OC
+Xcomp14 VSENSOR N14 C14_OUT 0 COMP_OC
+Xcomp13 VSENSOR N13 C13_OUT 0 COMP_OC
+Xcomp12 VSENSOR N12 C12_OUT 0 COMP_OC
+Xcomp11 VSENSOR N11 C11_OUT 0 COMP_OC
+Xcomp10 VSENSOR N10 C10_OUT 0 COMP_OC
+Xcomp9  VSENSOR N9  C9_OUT  0 COMP_OC
+Xcomp8  VSENSOR N8  C8_OUT  0 COMP_OC
+Xcomp7  VSENSOR N7  C7_OUT  0 COMP_OC
+Xcomp6  VSENSOR N6  C6_OUT  0 COMP_OC
+Xcomp5  VSENSOR N5  C5_OUT  0 COMP_OC
+Xcomp4  VSENSOR N4  C4_OUT  0 COMP_OC
+Xcomp3  VSENSOR N3  C3_OUT  0 COMP_OC
+Xcomp2  VSENSOR N2  C2_OUT  0 COMP_OC
+Xcomp1  VSENSOR N1  C1_OUT  0 COMP_OC
+
+* --- SIMULATION COMMANDS ---
+.tran 10us 16ms 0ms 10us
+.print tran V(VSENSOR) V(C15_OUT) V(C8_OUT) V(C1_OUT)
+
+.end

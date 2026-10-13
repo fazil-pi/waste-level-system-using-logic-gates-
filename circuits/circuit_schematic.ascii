@@ -1,0 +1,115 @@
+========================================================================================================================
+                      4-BIT FLASH ADC SMART WASTE LEVEL INDICATOR (HARDWARE LOGIC ONLY)
+========================================================================================================================
+
+ [POWER SUPPLY (LM7805)]
+   +9V Battery >----+---[ LM7805 ]---+---------> +5V Regulated Rail
+                    |   IN     OUT   |
+                  +---+            +---+
+            10µF  |   | 0.33µF     |   | 0.1µF  (10µF Electrolytic on output)
+           Elect. === === Ceramic  === ===
+                    |   |            |   |
+   GND -------------+---+------------+---+-----> GND
+
+------------------------------------------------------------------------------------------------------------------------
+ [STAGE 1: SHARP ANALOG IR DISTANCE SENSOR (GP2Y0A21YK0F)]
+   Pin 1 (Vo)   ----[ 10kΩ Filter Resistor ]----+-----> V_sensor Analog Bus (0.40V - 2.80V)
+                                                |
+                                              ===== 1µF Anti-Chatter Ceramic Capacitor
+                                                |
+   Pin 2 (GND)  --------------------------------+-----> GND
+   Pin 3 (VCC)  <-------------------------------------> +5V Regulated Rail
+                (Bypassed with 47µF Electrolytic + 0.1µF Ceramic directly across Pins 2 & 3)
+
+------------------------------------------------------------------------------------------------------------------------
+ [STAGE 2: 16-RESISTOR PRECISION REFERENCE LADDER]
+   +5V Rail ----[ P_top: 10kΩ Trimpot (Adjusts to 2.80V) ]----+
+                                                              |
+                                                      [Node 15: 2.80V] ----> LM339 #4 (U6) Pin 5  (Comp 15 V+)
+                                                              | [R16: 1kΩ, 1%]
+                                                      [Node 14: 2.64V] ----> LM339 #4 (U6) Pin 7  (Comp 14 V+)
+                                                              | [R15: 1kΩ, 1%]
+                                                      [Node 13: 2.48V] ----> LM339 #4 (U6) Pin 9  (Comp 13 V+)
+                                                              | [R14: 1kΩ, 1%]
+                                                      [Node 12: 2.32V] ----> LM339 #3 (U5) Pin 11 (Comp 12 V+)
+                                                              | [R13: 1kΩ, 1%]
+                                                      [Node 11: 2.16V] ----> LM339 #3 (U5) Pin 9  (Comp 11 V+)
+                                                              | [R12: 1kΩ, 1%]
+                                                      [Node 10: 2.00V] ----> LM339 #3 (U5) Pin 7  (Comp 10 V+)
+                                                              | [R11: 1kΩ, 1%]
+                                                      [Node 9:  1.84V] ----> LM339 #3 (U5) Pin 5  (Comp 9  V+)
+                                                              | [R10: 1kΩ, 1%]
+                                                      [Node 8:  1.68V] ----> LM339 #2 (U4) Pin 11 (Comp 8  V+)
+                                                              | [R9:  1kΩ, 1%]
+                                                      [Node 7:  1.52V] ----> LM339 #2 (U4) Pin 9  (Comp 7  V+)
+                                                              | [R8:  1kΩ, 1%]
+                                                      [Node 6:  1.36V] ----> LM339 #2 (U4) Pin 7  (Comp 6  V+)
+                                                              | [R7:  1kΩ, 1%]
+                                                      [Node 5:  1.20V] ----> LM339 #2 (U4) Pin 5  (Comp 5  V+)
+                                                              | [R6:  1kΩ, 1%]
+                                                      [Node 4:  1.04V] ----> LM339 #1 (U3) Pin 11 (Comp 4  V+)
+                                                              | [R5:  1kΩ, 1%]
+                                                      [Node 3:  0.88V] ----> LM339 #1 (U3) Pin 9  (Comp 3  V+)
+                                                              | [R4:  1kΩ, 1%]
+                                                      [Node 2:  0.72V] ----> LM339 #1 (U3) Pin 7  (Comp 2  V+)
+                                                              | [R3:  1kΩ, 1%]
+                                                      [Node 1:  0.40V] ----> LM339 #1 (U3) Pin 5  (Comp 1  V+)
+                                                              | [R1, R2: 1kΩ, 1%]
+   GND --------- [ P_bot: 5kΩ Trimpot (Adjusts to 0.40V) ]----+
+
+------------------------------------------------------------------------------------------------------------------------
+ [STAGE 3: 15 COMPARATORS (LM339 QUAD COMPARATOR ICs)]
+   V_sensor Bus connects to Inverting Input (V-) of all 15 comparators:
+   - LM339 #1 (U3): Pins 4, 6, 8, 10
+   - LM339 #2 (U4): Pins 4, 6, 8, 10
+   - LM339 #3 (U5): Pins 4, 6, 8, 10
+   - LM339 #4 (U6): Pins 4, 6, 8 (Pin 10 unused comparator V- tied to +5V, Pin 11 V+ tied to GND)
+
+   Pull-Up Resistor Array: 15x 10kΩ resistors between +5V Rail and each Comparator Output.
+
+   Comparator Outputs (Open Collector, Active-LOW when V_sensor >= V_th):
+   - Comp 15 Output (U6 Pin 2)  ---------------------------------> 74HC148 (U1) Pin 4  (~I7)
+   - Comp 14 Output (U6 Pin 1)  ---------------------------------> 74HC148 (U1) Pin 3  (~I6)
+   - Comp 13 Output (U6 Pin 14) ---------------------------------> 74HC148 (U1) Pin 2  (~I5)
+   - Comp 12 Output (U5 Pin 13) ---------------------------------> 74HC148 (U1) Pin 1  (~I4)
+   - Comp 11 Output (U5 Pin 14) ---------------------------------> 74HC148 (U1) Pin 13 (~I3)
+   - Comp 10 Output (U5 Pin 1)  ---------------------------------> 74HC148 (U1) Pin 12 (~I2)
+   - Comp 9  Output (U5 Pin 2)  ---------------------------------> 74HC148 (U1) Pin 11 (~I1)
+   - Comp 8  Output (U4 Pin 13) ---------------------------------> 74HC148 (U1) Pin 10 (~I0)
+
+   - Comp 7  Output (U4 Pin 14) ---------------------------------> 74HC148 (U2) Pin 4  (~I7)
+   - Comp 6  Output (U4 Pin 1)  ---------------------------------> 74HC148 (U2) Pin 3  (~I6)
+   - Comp 5  Output (U4 Pin 2)  ---------------------------------> 74HC148 (U2) Pin 2  (~I5)
+   - Comp 4  Output (U3 Pin 13) ---------------------------------> 74HC148 (U2) Pin 1  (~I4)
+   - Comp 3  Output (U3 Pin 14) ---------------------------------> 74HC148 (U2) Pin 13 (~I3)
+   - Comp 2  Output (U3 Pin 1)  ---------------------------------> 74HC148 (U2) Pin 12 (~I2)
+   - Comp 1  Output (U3 Pin 2)  ---------------------------------> 74HC148 (U2) Pin 11 (~I1)
+   - +5V Rail (Tied Inactive)   ---------------------------------> 74HC148 (U2) Pin 10 (~I0)
+
+------------------------------------------------------------------------------------------------------------------------
+ [STAGE 4: DIGITAL CASCADING & 74HC00 NAND COMBINER]
+   U1 (High-Order 74HC148) Pin 5 (~EI)   ----> GND (Always enabled)
+   U1 Pin 15 (~EO)                       ----> U2 (Low-Order 74HC148) Pin 5 (~EI) [Cascade Enable]
+
+   U1 Pin 14 (~GS)                       ----> 74HC00 Pins 12 & 13 (Inverter)
+                                               Gate 4 Output: Pin 11 = B3 (MSB)
+
+   U1 Pin 9  (~A0)                       ----> 74HC00 Pin 1
+   U2 Pin 9  (~A0)                       ----> 74HC00 Pin 2
+                                               Gate 1 Output: Pin 3  = B0 (LSB)
+
+   U1 Pin 7  (~A1)                       ----> 74HC00 Pin 4
+   U2 Pin 7  (~A1)                       ----> 74HC00 Pin 5
+                                               Gate 2 Output: Pin 6  = B1
+
+   U1 Pin 6  (~A2)                       ----> 74HC00 Pin 9
+   U2 Pin 6  (~A2)                       ----> 74HC00 Pin 10
+                                               Gate 3 Output: Pin 8  = B2
+
+------------------------------------------------------------------------------------------------------------------------
+ [STAGE 5: 4-BIT BINARY LED DISPLAY]
+   74HC00 Pin 11 (B3: MSB) ---> [ 330Ω Resistor ] --->| LED3 (Red / High Weight 8)   ---> GND
+   74HC00 Pin 8  (B2)      ---> [ 330Ω Resistor ] --->| LED2 (Yellow / Weight 4)      ---> GND
+   74HC00 Pin 6  (B1)      ---> [ 330Ω Resistor ] --->| LED1 (Yellow / Weight 2)      ---> GND
+   74HC00 Pin 3  (B0: LSB) ---> [ 330Ω Resistor ] --->| LED0 (Green / Low Weight 1)  ---> GND
+========================================================================================================================

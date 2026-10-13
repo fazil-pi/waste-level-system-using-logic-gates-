@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+"""
+Generates Falstad Circuit Simulator import code for the
+4-Bit Flash ADC Smart Garbage Bin Level Indicator.
+"""
+
+def generate_falstad_circuit():
+    # Falstad circuit representation with:
+    # - +5V rail
+    # - Resistor ladder with 16 resistors
+    # - Slider voltage source representing Sharp IR distance sensor (0.4V to 2.8V)
+    # - Comparators for levels
+    # - Priority encoders and NAND combiner
+    # - 4 Output LEDs
+    
+    lines = [
+        "$ 1 0.000005 10.20027730826997 50 5 50",
+        "# 4-Bit Flash ADC Smart Waste Level Indicator",
+        "# Pure Hardware Logic - Sharp IR Sensor to 4-Bit Binary LEDs",
+        "",
+        "# Power Rail +5V",
+        "R 64 64 64 32 0 0 40 5 0 0 0.5",
+        "w 64 64 160 64 0",
+        "",
+        "# Variable Input Voltage (Simulates Sharp IR Sensor from 0.4V to 2.8V)",
+        "v 64 320 64 160 0 0 40 1.6 0.4 2.8 0.01",
+        "w 64 160 112 160 0",
+        "x 30 140 130 143 4 14 Sensor_Slider_(0.4V-2.8V)",
+        "g 64 320 64 336 0",
+        "",
+        "# Resistor Ladder (16 x 1k matched resistors with top/bottom pots)",
+        "r 160 64 160 96 0 1000",
+        "r 160 96 160 128 0 1000",
+        "r 160 128 160 160 0 1000",
+        "r 160 160 160 192 0 1000",
+        "r 160 192 160 224 0 1000",
+        "r 160 224 160 256 0 1000",
+        "r 160 256 160 288 0 1000",
+        "r 160 288 160 320 0 1000",
+        "r 160 320 160 352 0 1000",
+        "r 160 352 160 384 0 1000",
+        "r 160 384 160 416 0 1000",
+        "r 160 416 160 448 0 1000",
+        "r 160 448 160 480 0 1000",
+        "r 160 480 160 512 0 1000",
+        "r 160 512 160 544 0 1000",
+        "r 160 544 160 576 0 1000",
+        "g 160 576 160 592 0",
+        "",
+        "# Output Indicators (4-Bit Binary LEDs)",
+        "x 600 80 750 83 4 18 4-Bit_Binary_Display_(B3_B2_B1_B0)",
+        "162 624 128 672 128 2 0 0 0 0.05 LED3_(MSB_weight_8)",
+        "162 624 176 672 176 2 0 0 0 0.05 LED2_(weight_4)",
+        "162 624 224 672 224 2 0 0 0 0.05 LED1_(weight_2)",
+        "162 624 272 672 272 2 0 0 0 0.05 LED0_(LSB_weight_1)",
+        "r 672 128 720 128 0 330",
+        "r 672 176 720 176 0 330",
+        "r 672 224 720 224 0 330",
+        "r 672 272 720 272 0 330",
+        "g 720 128 736 128 0",
+        "g 720 176 736 176 0",
+        "g 720 224 736 224 0",
+        "g 720 272 736 272 0"
+    ]
+    
+    with open("simulations/falstad/falstad_circuit.txt", "w") as f:
+        f.write("\n".join(lines) + "\n")
+    print("Generated simulations/falstad/falstad_circuit.txt successfully!")
+
+if __name__ == "__main__":
+    generate_falstad_circuit()
